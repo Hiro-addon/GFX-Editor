@@ -1,10 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GFX Editor</title>
-
 <style>
 * {
   box-sizing: border-box;
@@ -15,7 +15,7 @@ body {
   padding: 24px 16px;
   background: #F7F5EF;
   color: #333333;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 
 main {
@@ -192,7 +192,7 @@ footer {
   display: none;
 }
 
-@media (max-width: 450px) {
+@media (max-width:450px) {
   body {
     padding: 14px;
   }
@@ -207,123 +207,55 @@ footer {
 }
 </style>
 </head>
-
 <body>
-
 <main>
-
 <header>
-  <h1>GFX Editor</h1>
-  <p>Minecraft Bedrock Edition</p>
+<h1>GFX Editor</h1>
+<p>Minecraft Bedrock Edition</p>
 </header>
 
 <section class="panel">
-
-  <h2>設定ファイルを読み込む</h2>
-
-  <div class="drop" id="drop">
-
-    <p>
-      Minecraft/games/com.mojang/minecraftpe<br>
-      内の options.txt を選択
-    </p>
-
-    <button class="secondary" id="choose">
-      options.txt を選択
-    </button>
-
-    <input
-      type="file"
-      id="file"
-      class="hidden"
-      accept=".txt"
-    >
-
-    <p id="filename">ファイル未選択</p>
-
-  </div>
-
-  <div class="status" id="loadstatus">
-    options.txt のみ読み込みできます。
-  </div>
-
+<h2>設定ファイルを読み込む</h2>
+<div class="drop" id="drop">
+<p>Minecraft/games/com.mojang/minecraftpe<br>内の options.txt を選択</p>
+<button class="secondary" id="choose">options.txt を選択</button>
+<input type="file" id="file" class="hidden" accept=".txt">
+<p id="filename">ファイル未選択</p>
+</div>
+<div class="status" id="loadstatus">options.txt のみ読み込みできます。</div>
 </section>
 
 <section class="panel">
+<h2>描画距離を変更</h2>
+<div class="big"><span id="chunkval">16</span></div>
+<div class="sub">チャンク</div>
+<input type="range" id="slider" min="1" max="96" step="1" value="16">
+<div class="bounds">
+<span>1チャンク</span>
+<span>96チャンク</span>
+</div>
+<br>
+<label for="chunkinput">チャンク数を直接入力</label>
+<input type="number" id="chunkinput" min="1" max="96" step="1" value="16">
 
-  <h2>描画距離を変更</h2>
+<div class="result">
+<small>gfx_viewdistance</small>
+<strong id="blockval">256</strong>
+<small>ブロック</small>
+</div>
 
-  <div class="big">
-    <span id="chunkval">16</span>
-  </div>
+<div class="actions">
+<button id="save" disabled>ダウンロード</button>
+<button class="secondary" id="copy">数値をコピー</button>
+</div>
 
-  <div class="sub">チャンク</div>
-
-  <input
-    type="range"
-    id="slider"
-    min="1"
-    max="96"
-    step="1"
-    value="16"
-  >
-
-  <div class="bounds">
-    <span>1チャンク</span>
-    <span>96チャンク</span>
-  </div>
-
-  <br>
-
-  <label for="chunkinput">
-    チャンク数を直接入力
-  </label>
-
-  <input
-    type="number"
-    id="chunkinput"
-    min="1"
-    max="96"
-    step="1"
-    value="16"
-  >
-
-  <div class="result">
-
-    <small>gfx_viewdistance</small>
-
-    <strong id="blockval">256</strong>
-
-    <small>ブロック</small>
-
-  </div>
-
-  <div class="actions">
-
-    <button id="save" disabled>
-      ダウンロード
-    </button>
-
-    <button class="secondary" id="copy">
-      数値をコピー
-    </button>
-
-  </div>
-
-  <div class="status" id="savestatus">
-    ファイルを読み込んでください。
-  </div>
-
+<div class="status" id="savestatus">ファイルを読み込んでください。</div>
 </section>
 
-<footer>
-  GFX Editor
-</footer>
-
+<footer>GFX Editor</footer>
 </main>
 
 <script>
-
 const $ = id => document.getElementById(id);
 
 let originalText = null;
@@ -331,63 +263,41 @@ let fileName = "options.txt";
 let matchInfo = null;
 
 function setChunks(value) {
-
-  const n = Math.max(
-    1,
-    Math.min(96, Math.round(Number(value) || 1))
-  );
-
+  const n = Math.max(1, Math.min(96, Math.round(Number(value) || 1)));
   $("slider").value = n;
   $("chunkinput").value = n;
   $("chunkval").textContent = n;
   $("blockval").textContent = n * 16;
-
 }
 
-$("slider").addEventListener("input", e => {
-  setChunks(e.target.value);
-});
-
-$("chunkinput").addEventListener("change", e => {
-  setChunks(e.target.value);
-});
+$("slider").addEventListener("input", e => setChunks(e.target.value));
+$("chunkinput").addEventListener("change", e => setChunks(e.target.value));
 
 $("choose").onclick = () => {
   $("file").click();
 };
 
 function detect(text) {
-
   const lines = text.split(/\r\n|\n|\r/);
 
   for (let i = 0; i < lines.length; i++) {
-
-    const m = lines[i].match(
-      /^(\s*(?:"gfx_viewdistance"|gfx_viewdistance)\s*[:=]\s*)(-?\d+)(\s*,?\s*(?:\/\/.*)?)$/i
-    );
+    const m = lines[i].match(/^(\s*(?:"gfx_viewdistance"|gfx_viewdistance)\s*[:=]\s*)(-?\d+)(\s*,?\s*(?:\/\/.*)?)$/i);
 
     if (m) {
-
       return {
         line: i,
         prefix: m[1],
         suffix: m[3],
         value: m[2],
-        newline: text.includes("\r\n")
-          ? "\r\n"
-          : text.includes("\r") ? "\r" : "\n"
+        newline: text.includes("\r\n") ? "\r\n" : text.includes("\r") ? "\r" : "\n"
       };
-
     }
-
   }
 
   return null;
-
 }
 
 async function loadFile(file) {
-
   originalText = null;
   matchInfo = null;
   $("save").disabled = true;
@@ -397,110 +307,66 @@ async function loadFile(file) {
   $("filename").textContent = file.name;
 
   if (file.name !== "options.txt") {
-
     $("loadstatus").className = "status error";
-
-    $("loadstatus").textContent =
-      "options.txt 以外のファイルは選択できません。";
-
-    $("savestatus").textContent =
-      "正しい options.txt を選択してください。";
-
+    $("loadstatus").textContent = "options.txt 以外のファイルは選択できません。";
+    $("savestatus").textContent = "正しい options.txt を選択してください。";
     return;
-
   }
 
   try {
-
     const text = await file.text();
     const found = detect(text);
 
     if (!found) {
-
       $("loadstatus").className = "status error";
-
-      $("loadstatus").textContent =
-        "gfx_viewdistance が見つかりませんでした。";
-
+      $("loadstatus").textContent = "gfx_viewdistance が見つかりませんでした。";
       return;
-
     }
 
     originalText = text;
     fileName = file.name;
     matchInfo = found;
-
     $("save").disabled = false;
 
     const current = Number(found.value);
 
-    if (
-      current > 0 &&
-      current % 16 === 0 &&
-      current / 16 <= 96
-    ) {
-
+    if (current > 0 && current % 16 === 0 && current / 16 <= 96) {
       setChunks(current / 16);
-
     } else {
-
       setChunks(16);
-
     }
 
     $("loadstatus").className = "status success";
-
-    $("loadstatus").textContent =
-      "options.txt の読み込みに成功しました。";
-
-    $("savestatus").textContent =
-      "変更するチャンク数を設定してください。";
+    $("loadstatus").textContent = "options.txt の読み込みに成功しました。";
+    $("savestatus").textContent = "変更するチャンク数を設定してください。";
 
   } catch (e) {
-
     $("loadstatus").className = "status error";
-
-    $("loadstatus").textContent =
-      "ファイルを読み込めませんでした。";
-
+    $("loadstatus").textContent = "ファイルを読み込めませんでした。";
   }
-
 }
 
-$("file").addEventListener("change", e => {
-  loadFile(e.target.files[0]);
-});
+$("file").addEventListener("change", e => loadFile(e.target.files[0]));
 
 const drop = $("drop");
 
 ["dragenter", "dragover"].forEach(event => {
-
   drop.addEventListener(event, e => {
-
     e.preventDefault();
     drop.style.borderColor = "#547D65";
-
   });
-
 });
 
 ["dragleave", "drop"].forEach(event => {
-
   drop.addEventListener(event, e => {
-
     e.preventDefault();
     drop.style.borderColor = "#C9C6BD";
-
   });
-
 });
 
-drop.addEventListener("drop", e => {
-  loadFile(e.dataTransfer.files[0]);
-});
+drop.addEventListener("drop", e => loadFile(e.dataTransfer.files[0]));
 
 $("save").onclick = async () => {
-
   if (originalText === null || !matchInfo) return;
 
   const lines = originalText.split(/\r\n|\n|\r/);
@@ -510,87 +376,63 @@ $("save").onclick = async () => {
     (Number($("chunkval").textContent) * 16) +
     matchInfo.suffix;
 
-  const blob = new Blob(
+  const outputFile = new File(
     [lines.join(matchInfo.newline)],
-    { type: "text/plain;charset=utf-8" }
-  );
-
-  const file = new File(
-    [blob],
     "options.txt",
-    { type: "text/plain" }
+    {
+      type: "text/plain",
+      lastModified: Date.now()
+    }
   );
 
   if (
     navigator.share &&
     navigator.canShare &&
-    navigator.canShare({ files: [file] })
+    navigator.canShare({
+      files: [outputFile]
+    })
   ) {
-
     try {
-
       await navigator.share({
-        files: [outputFile]"
+        files: [outputFile]
       });
 
       $("savestatus").className = "status success";
-      $("savestatus").textContent =
-        "ダウンロードしました。";
-
+      $("savestatus").textContent = "ダウンロードしました。";
       return;
 
     } catch (e) {
-
       if (e.name === "AbortError") return;
-
     }
-
   }
 
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(outputFile);
   const a = document.createElement("a");
 
   a.href = url;
   a.download = "options.txt";
-
-  document.body.appendChild(a);
   a.click();
-  a.remove();
 
   setTimeout(() => {
     URL.revokeObjectURL(url);
   }, 1000);
 
   $("savestatus").className = "status success";
-  $("savestatus").textContent =
-    "ダウンロードしました。";
-
+  $("savestatus").textContent = "ダウンロードしました。";
 };
 
 $("copy").onclick = async () => {
-
-  const value =
-    Number($("chunkval").textContent) * 16;
+  const value = Number($("chunkval").textContent) * 16;
 
   try {
-
     await navigator.clipboard.writeText(String(value));
-
     $("savestatus").className = "status success";
-
-    $("savestatus").textContent =
-      value + " をコピーしました。";
+    $("savestatus").textContent = value + " をコピーしました。";
 
   } catch (e) {
-
-    $("savestatus").textContent =
-      "コピーできませんでした。数値: " + value;
-
+    $("savestatus").textContent = "コピーできませんでした。数値: " + value;
   }
-
 };
-
 </script>
-
 </body>
 </html>
