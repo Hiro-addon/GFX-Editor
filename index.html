@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -531,8 +530,7 @@ $("save").onclick = async () => {
     try {
 
       await navigator.share({
-        files: [file],
-        title: "GFX Editor"
+        files: [outputFile]"
       });
 
       $("savestatus").className = "status success";
