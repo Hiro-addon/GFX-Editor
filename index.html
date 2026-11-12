@@ -302,7 +302,7 @@ footer {
   <div class="actions">
 
     <button id="save" disabled>
-      編集したファイルをダウンロード
+      ダウンロード
     </button>
 
     <button class="secondary" id="copy">
@@ -500,7 +500,7 @@ drop.addEventListener("drop", e => {
   loadFile(e.dataTransfer.files[0]);
 });
 
-$("save").onclick = () => {
+$("save").onclick = async () => {
 
   if (originalText === null || !matchInfo) return;
 
@@ -516,18 +516,47 @@ $("save").onclick = () => {
     { type: "text/plain;charset=utf-8" }
   );
 
-  const url = URL.createObjectURL(blob);
+  const file = new File(
+    [blob],
+    "options.txt",
+    { type: "text/plain" }
+  );
 
+  if (
+    navigator.share &&
+    navigator.canShare &&
+    navigator.canShare({ files: [file] })
+  ) {
+
+    try {
+
+      await navigator.share({
+        files: [file],
+        title: "GFX Editor"
+      });
+
+      $("savestatus").className = "status success";
+      $("savestatus").textContent =
+        "ダウンロードしました。";
+
+      return;
+
+    } catch (e) {
+
+      if (e.name === "AbortError") return;
+
+    }
+
+  }
+
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
 
   a.href = url;
-
   a.download = "options.txt";
 
   document.body.appendChild(a);
-
   a.click();
-
   a.remove();
 
   setTimeout(() => {
@@ -535,9 +564,8 @@ $("save").onclick = () => {
   }, 1000);
 
   $("savestatus").className = "status success";
-
   $("savestatus").textContent =
-    "options.txt をダウンロードしました。";
+    "ダウンロードしました。";
 
 };
 
