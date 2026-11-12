@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
-<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GFX Editor</title>
 
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
+<link rel="manifest" href="/site.webmanifest">
 
 <meta name="theme-color" content="#547D65">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="GFX Editor">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>GFX Editor</title>
+
 <style>
 * {
   box-sizing: border-box;
@@ -220,6 +224,7 @@ footer {
 </head>
 <body>
 <main>
+
 <header>
 <h1>GFX Editor</h1>
 <p>Minecraft Bedrock Edition</p>
@@ -227,25 +232,32 @@ footer {
 
 <section class="panel">
 <h2>設定ファイルを読み込む</h2>
+
 <div class="drop" id="drop">
 <p>Minecraft/games/com.mojang/minecraftpe<br>内の options.txt を選択</p>
 <button class="secondary" id="choose">options.txt を選択</button>
 <input type="file" id="file" class="hidden" accept=".txt">
 <p id="filename">ファイル未選択</p>
 </div>
+
 <div class="status" id="loadstatus">options.txt のみ読み込みできます。</div>
 </section>
 
 <section class="panel">
 <h2>描画距離を変更</h2>
+
 <div class="big"><span id="chunkval">16</span></div>
 <div class="sub">チャンク</div>
+
 <input type="range" id="slider" min="1" max="96" step="1" value="16">
+
 <div class="bounds">
 <span>1チャンク</span>
 <span>96チャンク</span>
 </div>
+
 <br>
+
 <label for="chunkinput">チャンク数を直接入力</label>
 <input type="number" id="chunkinput" min="1" max="96" step="1" value="16">
 
@@ -264,6 +276,7 @@ footer {
 </section>
 
 <footer>GFX Editor</footer>
+
 </main>
 
 <script>
@@ -275,14 +288,20 @@ let matchInfo = null;
 
 function setChunks(value) {
   const n = Math.max(1, Math.min(96, Math.round(Number(value) || 1)));
+
   $("slider").value = n;
   $("chunkinput").value = n;
   $("chunkval").textContent = n;
   $("blockval").textContent = n * 16;
 }
 
-$("slider").addEventListener("input", e => setChunks(e.target.value));
-$("chunkinput").addEventListener("change", e => setChunks(e.target.value));
+$("slider").addEventListener("input", e => {
+  setChunks(e.target.value);
+});
+
+$("chunkinput").addEventListener("change", e => {
+  setChunks(e.target.value);
+});
 
 $("choose").onclick = () => {
   $("file").click();
@@ -337,6 +356,7 @@ async function loadFile(file) {
     originalText = text;
     fileName = file.name;
     matchInfo = found;
+
     $("save").disabled = false;
 
     const current = Number(found.value);
@@ -357,7 +377,9 @@ async function loadFile(file) {
   }
 }
 
-$("file").addEventListener("change", e => loadFile(e.target.files[0]));
+$("file").addEventListener("change", e => {
+  loadFile(e.target.files[0]);
+});
 
 const drop = $("drop");
 
@@ -375,7 +397,9 @@ const drop = $("drop");
   });
 });
 
-drop.addEventListener("drop", e => loadFile(e.dataTransfer.files[0]));
+drop.addEventListener("drop", e => {
+  loadFile(e.dataTransfer.files[0]);
+});
 
 $("save").onclick = async () => {
   if (originalText === null || !matchInfo) return;
@@ -437,6 +461,7 @@ $("copy").onclick = async () => {
 
   try {
     await navigator.clipboard.writeText(String(value));
+
     $("savestatus").className = "status success";
     $("savestatus").textContent = value + " をコピーしました。";
 
