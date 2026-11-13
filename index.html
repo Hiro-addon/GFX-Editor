@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -174,12 +175,12 @@ label {
 .actions {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
   margin-top: 16px;
 }
 
 .actions button {
   flex: 1;
+  min-width: 0;
 }
 
 .status {
@@ -216,10 +217,6 @@ footer {
 
   .panel {
     padding: 18px;
-  }
-
-  .actions {
-    flex-direction: column;
   }
 }
 </style>
@@ -269,8 +266,14 @@ footer {
 <small>ブロック</small>
 </div>
 
+<!-- ダウンロード・共有 -->
 <div class="actions">
 <button id="save" disabled>ダウンロード</button>
+<button id="share" disabled>共有</button>
+</div>
+
+<!-- 数値コピー -->
+<div class="actions">
 <button class="secondary" id="copy">数値をコピー</button>
 </div>
 
@@ -332,7 +335,9 @@ function detect(text) {
 async function loadFile(file) {
   originalText = null;
   matchInfo = null;
+
   $("save").disabled = true;
+  $("share").disabled = true;
 
   if (!file) return;
 
@@ -360,6 +365,7 @@ async function loadFile(file) {
     matchInfo = found;
 
     $("save").disabled = false;
+    $("share").disabled = false;
 
     const current = Number(found.value);
 
@@ -403,8 +409,9 @@ drop.addEventListener("drop", e => {
   loadFile(e.dataTransfer.files[0]);
 });
 
-$("save").onclick = async () => {
-  if (originalText === null || !matchInfo) return;
+// 変更後のoptions.txtを生成
+function createOutputFile() {
+  if (originalText === null || !matchInfo) return null;
 
   const lines = originalText.split(/\r\n|\n|\r/);
 
@@ -413,7 +420,7 @@ $("save").onclick = async () => {
     (Number($("chunkval").textContent) * 16) +
     matchInfo.suffix;
 
-  const outputFile = new File(
+  return new File(
     [lines.join(matchInfo.newline)],
     "options.txt",
     {
@@ -421,43 +428,63 @@ $("save").onclick = async () => {
       lastModified: Date.now()
     }
   );
+}
 
-  if (
-    navigator.share &&
-    navigator.canShare &&
-    navigator.canShare({
-      files: [outputFile]
-    })
-  ) {
-    try {
-      await navigator.share({
-        files: [outputFile]
-      });
+// 共有
+$("share").onclick = async () => {
+  const outputFile = createOutputFile();
+  if (!outputFile) return;
 
-      $("savestatus").className = "status success";
-      $("savestatus").textContent = "ダウンロードしました。";
+  try {
+    if (
+      !navigator.share ||
+      !navigator.canShare ||
+      !navigator.canShare({ files: [outputFile] })
+    ) {
+      $("savestatus").className = "status error";
+      $("savestatus").textContent = "この環境ではファイル共有に対応していません。";
       return;
+    }
 
-    } catch (e) {
-      if (e.name === "AbortError") return;
+    await navigator.share({
+      files: [outputFile],
+      title: "GFX Editor"
+    });
+
+    $("savestatus").className = "status success";
+    $("savestatus").textContent = "共有を完了しました。";
+
+  } catch (e) {
+    if (e.name !== "AbortError") {
+      $("savestatus").className = "status error";
+      $("savestatus").textContent = "共有できませんでした。";
     }
   }
+};
+
+// ダウンロード
+$("save").onclick = () => {
+  const outputFile = createOutputFile();
+  if (!outputFile) return;
 
   const url = URL.createObjectURL(outputFile);
   const a = document.createElement("a");
 
   a.href = url;
   a.download = "options.txt";
+  document.body.appendChild(a);
   a.click();
+  a.remove();
 
   setTimeout(() => {
     URL.revokeObjectURL(url);
   }, 1000);
 
   $("savestatus").className = "status success";
-  $("savestatus").textContent = "ダウンロードしました。";
+  $("savestatus").textContent = "ダウンロードを開始しました。";
 };
 
+// 数値をコピー
 $("copy").onclick = async () => {
   const value = Number($("chunkval").textContent) * 16;
 
